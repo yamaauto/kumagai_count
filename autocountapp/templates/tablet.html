@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme_reset.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <!-- <link rel="stylesheet" href="./css/theme_reset.min.css">
+    <link rel="stylesheet" href="./css/style.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body>
+{% include 'header.html' %}
+
+  <main class="press-main">
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="inner management-inner">
+      <ul class="management">
+        <h2><img src="{{ url_for('static', filename='img/masseage.svg')}}" alt="">品質保証部メッセージ</h2>
+        <div id="comment-container" style="font-size: 24px;">
+            <p>データを読み込んでいます...</p>
+        </div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div id="flash-message" class="flash">
+          {{ messages[0] }}
+          <button onclick="document.getElementById('flash-message').style.display='none'">✖</button>
+        </div>
+        {% endif %}
+        {% endwith %}
+        <li class="section">
+          <form method="POST" action="?">
+            <input type="hidden" name="press" value={{ press }}>
+            <table class="c-commonTable select-table" data-group="machine">
+              <thead>
+                <div id="data-container" data-status='{{ status_list | tojson | safe }}'></div>
+                <tr>
+                  <!-- <th scope="col">選択</th> -->
+                  <th scope="col" class="sticky" style="width: 100px;">名前</th>
+                  <th scope="col" class="sticky" style="width: 90px;">稼働状況</th>
+                  <th scope="col" class="sticky" style="width: 180px;">型番</th>
+                  <th scope="col" class="sticky" style="width: 180px;">品名</th>
+                  <th scope="col" class="sticky" style="width: 130px;">稼働開始時刻</th>
+                  <th scope="col" class="sticky" style="width: 308px;">メッセージ</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for n in machine_datas %}
+                <tr class="select-tr" onclick="selectRow(this, 'machine')">
+                  <td hidden><input type="radio" id="{{ n[0] }}" name="machine" value={{ n[0] }}></td>
+                  <td>{{ n[0] }}</td>
+                  <td><div class="{{ n[0] }}">{{ n[1]["status"] }}</div></td>
+                  <td>{{ n[1]["item"] }}</td>
+                  <td>{{ n[1]["item_name"] }}</td>
+                  <td>{{ n[1]["time_st"] }}</td>
+                  <td>{{ messages_dict[n[0]] }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+    
+    
+
+    
+            
+            <section class="switching">
+              <h2><img src="{{ url_for('static', filename='img/adjustment.svg')}}" alt="">調整</h2>
+              <div class="common-button">
+                <button type="submit" id="setup" name="check_type" class="btn btn--red btn--radius btn--cubic on" value="setup" formaction="/fixmachine" disabled>段取り</button>
+                <button type="submit" id="check" name="check_type" class="btn btn--red btn--radius btn--cubic on" value="check" formaction="/fixmachine" disabled>検査</button>
+                <button type="submit" id="fix" name="check_type" class="btn btn--red btn--radius btn--cubic on" value="fix" formaction="/fixmachine" disabled>調整</button>
+              </div>
+
+              <h2><img src="{{ url_for('static', filename='img/production.svg')}}" alt="">生産</h2>
+              <div class="common-button">
+                <button type="submit" id="start" class="btn btn--red btn--radius btn--cubic on" name="operation" value="start" formaction="/" disabled>開始</button>
+                <button type="submit" id="end" class="btn btn--red btn--radius btn--cubic off" name="operation" value="end" formaction="/" disabled>終了</button>
+                <button type="submit" id="nxtday" class="btn btn--red btn--radius btn--cubic off" name="operation" value="nxtday" formaction="/" disabled>日跨ぎ</button>
+                <!-- <button type="submit" id="endday" class="btn btn--red btn--radius btn--cubic off" name="operation" value="endday" formaction="/" disabled>本日終了</button> -->
+              </div>
+            
+            <!-- <label for="">{{ sheet_regist }}</label> -->
+             <h2><img src="{{ url_for('static', filename='img/registration.svg')}}" alt="">商品選択</h2>
+            <div class="search-box">
+              <label for="search" class="search-label">🔍 キーワード検索</label>
+              <input type="text" class="search-input" name="search" id="search" placeholder="キーワード入力">
+            </div>
+            <div class="table_box">
+              <table class="c-commonTable select-table" data-group="item">
+                <thead>
+                <tr>
+                  <th scope="col" class="sticky" width="105px">取引先名</th>
+                  <th scope="col" class="sticky" width="70px">rotNo</th>
+                  <th scope="col" class="sticky" width="400px">型式</th>
+                  <th scope="col" class="sticky" width="400px">製品名</th>
+                </tr>
+              </thead>
+              <tbody id="item-table-body">
+              {% for i in items %}
+                <tr class="select-tr item-tr" onclick="selectRow(this, 'item')" >
+                  <td hidden><input type="radio" class="items" name="item" value={{ i[3] }} checked disabled></td>
+                  <td class="customer-name">{{ i[1] }}</td>
+                  <td class="rot-no">{{ i[2] }}</td>
+                  <td class="sku-no">{{ i[3] }}</td>
+                  <td class="item-name">{{ i[4] }}</td>
+                </tr>
+              {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+          </form>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+
+</body>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>

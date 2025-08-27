@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パス設定</title>
+</head>
+<form method="post" action="/settingpath">
+    <body>
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        <div class="container">
+            <h2>パス設定</h2>
+        
+            <div class="header-box">
+            <p>選択されたディレクトリ: <span id="selected-dir">まだ未選択</span></p>
+            <p><button type="button" id="dir-btn" onclick="selectDirectory()">ディレクトリを選択</button></p>
+            <p>調整開始時間: </p>
+            </div>
+        
+            <div class="footer">
+            <button type="submit" id="endButton" >送信</button>
+            <input type="hidden" id="dir-path" name="dir_path">
+            </div>
+        </div>
+        <script>
+            async function selectDirectory() {
+            try {
+                const dirHandle = await window.showDirectoryPicker();
+                const path = dirHandle.name;  
+
+                // 表示更新
+                document.getElementById("selected-dir").textContent = dirHandle;
+
+                // formのhidden inputにもセット
+                document.getElementById("dir-path").value = path;
+            } catch (err) {
+                console.error("ディレクトリ選択失敗:", err);
+            }
+            }
+        </script>
+    </body>
+</form>
+</html>

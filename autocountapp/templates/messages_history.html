@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme_reset.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <!-- <link rel="stylesheet" href="./css/theme_reset.min.css">
+    <link rel="stylesheet" href="./css/style.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body>
+{% include 'header.html' %}
+
+  <main class="press-main">
+    <div id="loading" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="inner management-inner">
+      <ul class="management">
+        <li class="section">
+            <!-- <div class="search-box">
+              <label for="search" class="search-label">🔍 キーワード検索</label>
+              <input type="text" class="search-input" name="search" id="search-messages" placeholder="キーワード入力">
+            </div> -->
+            <div class="table_box">
+              <table class="c-commonTable select-table" data-group="item">
+                <thead>
+                  <tr>
+                    <th scope="col" class="sticky" style="width: 100px;">更新日時</th>
+                    <th scope="col" class="sticky" style="width: 90px;">対象プレス機</th>
+                    <th scope="col" class="sticky" style="width: 308px;">メッセージ</th>
+                  </tr>
+                </thead>
+                <tbody id="messages-table-body">
+                {% for n in rows %}
+                  <tr>
+                    <td class="datetime">{{ n[0] }}</td>
+                    <td class="machine">{{ n[1] }}</td>
+                    <td class="message">{{ n[2] }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+
+</body>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>

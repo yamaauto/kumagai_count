@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme_reset.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <!-- <link rel="stylesheet" href="./css/theme_reset.min.css">
+    <link rel="stylesheet" href="./css/style.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body>
+    <form action="/qa" method="post" enctype="multipart/form-data">
+        {% include 'header.html' %}
+        <main class="press-main">
+            <div class="inner management-inner">
+                <ul class="management">
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div id="flash-message" class="flash">
+                                {{ messages[0] }}
+                                <button type="button" onclick="document.getElementById('flash-message').style.display='none'">✖</button>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    <li class="section">
+                        <h2><span><img src="{{ url_for('static', filename='img/masseage.svg')}}" alt=""></span>品質保証部メッセージ</h2>
+                        {% for n in machine_datas %}
+                        <label for={{ n[0] }}>プレス機{{ n[0] }}用</label><br>
+                        <textarea id={{ n[0] }} name="{{ n[0] }}" placeholder="{{ message_dict[n[0]] }}"></textarea><br>
+                        {% endfor %}
+                    </li>
+                    <li class="section">
+                        <h2><span><img src="{{ url_for('static', filename='img/registration.svg')}}" alt=""></span>商品登録(CSVファイルを選択)</h2>
+                        <!-- <h2><span><img src="./img/registration.svg" alt=""></span>商品名登録</h2> -->
+                        <input type="file" name="file" accept=".csv">
+                    </li>
+                    <li class="section">
+                        <button type="submit" class="btn btn--red btn--radius btn--cubic on">登録</button>
+                    </li>      
+                </ul>
+            </div>
+
+        </main>
+    </form>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme_reset.min.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css')}}">
+    <!-- <link rel="stylesheet" href="./css/theme_reset.min.css">
+    <link rel="stylesheet" href="./css/style.css"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kosugi&display=swap" rel="stylesheet">
+    <title>Document</title>
+</head>
+<form method="post" action="/?">
+    <input type="hidden" name="press" value={{ press }}>
+    <body>
+        {% include 'header.html' %}
+        <main class="press-main">
+            <div id="loading" class="loading-overlay">
+                <div class="loading-spinner"></div>
+            </div>
+            <div class="container inner management-inner">
+                <ul class="management">
+                    <li class="section">
+                    <h2>{% if check_type == 'check' %}検査記入{% elif check_type == 'fix' %}調整記入{% elif check_type == 'setup' %}段取り記入{% endif %}</h2>
+                    
+                        <div class="header-box">
+                        <label>プレス機名: {{ machine }}</label><br>
+                        <label>型番: {{ item }}</label><br>
+                        <label>製品名: {{ item_data[4] }}</label><br>
+                        <input type="hidden" name="check_type" value="{{ check_type }}">
+                        <input type="hidden" name="machine" value="{{ machine }}">
+                        <input type="hidden" name="item" value="{{ item }}">
+                        <input type="hidden" name="btn_type" value="{{ btn_type }}">
+                        </div>
+                    </li>
+                    {% if btn_type == 'end' %}
+                    <li class="section">
+                        <div class="form-box">
+                        <textarea id="note" name="comment" placeholder="内容入力フォーム"></textarea>
+                        </div>
+                    </li>
+                    {% endif %}
+                    <li class="section">
+                        <div class="footer">
+                        <button type="submit" id="returnButton" name="return_btn" value="home" class="btn btn--red btn--radius btn--cubic off" formaction="/fixmachine">戻る</button>
+                        <button type="submit" id="endButton" name="return_btn" value="submit" class="btn btn--red btn--radius btn--cubic on" formaction="/fixmachineregist" onsubmit="endoperation()">
+                            {% if check_type == 'check' %}検査{% elif check_type == 'fix' %}調整{% elif check_type == 'setup' %}段取り{% endif %}{% if btn_type == 'start' %}開始{% else %}終了{% endif %}
+                        </button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </main>
+        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </body>
+</form>
+</html>
