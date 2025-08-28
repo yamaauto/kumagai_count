@@ -216,6 +216,8 @@ def fix_machine_regist():
                 new_row_ss = [ope_id, check_date, machine, item, check_st_time, dt_now.strftime('%H:%M'), '', "調整", comment] #スプレッドシートに調整結果を記録
                 handle_ss.add_new_row(new_row_ss, "調整記録")
                 check_st_time = dt_now.strftime('%H:%M') #検査の開始時刻
+                message = ""
+                message_flg()
                 flash(f"{machine} の調整を終了し検査を開始しました")                
             update_machine_status([ope_id,machine_status,machine_data[1]['date_st'],machine_data[1]['time_st'],machine_data[1]['count_st'],item,check_st_time,message], machine)
 
