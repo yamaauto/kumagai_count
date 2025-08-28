@@ -10,9 +10,11 @@ ss.addEventListener('click', () => {
 });
 // 各ボタンにクリックイベントを設定
 buttons.forEach(button => {
-  button.addEventListener('click', () => {
-    loading.style.display = 'flex';
-  });
+  if (button.id !== 'flash') {
+    button.addEventListener('click', () => {
+      loading.style.display = 'flex';
+    });
+  }
 });
 
 const container = document.getElementById("data-container");
@@ -21,11 +23,11 @@ const statusList = JSON.parse(container.dataset.status);
 // データを取得して表示を更新する関数
 async function fetchLatestData() {
     try {
-        // FlaskのAPIエンドポイント '/getcomment' にリクエストを送信
+        // FlaskのAPIエンドポイント '/getmessage' にリクエストを送信
         let url = new URL(window.location.href);
         let params = url.searchParams;
-        console.log('/getcomment?='+params.get('press'))
-        const response = await fetch('/getcomment?press='+params.get('press'));
+        console.log('/getmessage?='+params.get('press'))
+        const response = await fetch('/getmessage?press='+params.get('press'));
         
         // レスポンスが正常でなければエラーを投げる
         if (!response.ok) {
@@ -41,7 +43,7 @@ async function fetchLatestData() {
     } catch (error) {
         // エラーが発生した場合、コンソールにエラー内容を出力
         console.error('データの取得に失敗しました:', error);
-        document.getElementById('comment-container').textContent = 'データの取得に失敗しました。';
+        document.getElementById('comment-container').textContent = '';
     }
 }
 

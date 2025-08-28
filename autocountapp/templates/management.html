@@ -30,7 +30,7 @@
                         <h2><span><img src="{{ url_for('static', filename='img/masseage.svg')}}" alt=""></span>品質保証部メッセージ</h2>
                         {% for n in machine_datas %}
                         <label for={{ n[0] }}>プレス機{{ n[0] }}用</label><br>
-                        <textarea id={{ n[0] }} name="{{ n[0] }}" placeholder="{{ message_dict[n[0]] }}"></textarea><br>
+                        <textarea id={{ n[0] }} name="{{ n[0] }}" placeholder="{{ n[0] }} へのメッセージを入力">{{ n[1]["comment"] }}</textarea><br>
                         {% endfor %}
                     </li>
                     <li class="section">

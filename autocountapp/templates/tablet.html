@@ -29,7 +29,7 @@
         {% if messages %}
         <div id="flash-message" class="flash">
           {{ messages[0] }}
-          <button onclick="document.getElementById('flash-message').style.display='none'">✖</button>
+          <button onclick="document.getElementById('flash-message').style.display='none'" id="flash">✖</button>
         </div>
         {% endif %}
         {% endwith %}
@@ -58,7 +58,7 @@
                   <td>{{ n[1]["item"] }}</td>
                   <td>{{ n[1]["item_name"] }}</td>
                   <td>{{ n[1]["time_st"] }}</td>
-                  <td>{{ messages_dict[n[0]] }}</td>
+                  <td>{{ n[1]["comment"] }}</td>
                 </tr>
               {% endfor %}
               </tbody>

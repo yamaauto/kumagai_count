@@ -89,8 +89,7 @@ def autocount_home():
 
     status_list = [[i[0],i[1]["status"]] for i in machine_datas]
     items = get_items()
-    messages_dict = get_messages()
-    return render_template('tablet.html', machine_datas=machine_datas, items=items, status_list=status_list, press=press, messages_dict=messages_dict)
+    return render_template('tablet.html', machine_datas=machine_datas, items=items, status_list=status_list, press=press)
 
 
 
@@ -162,6 +161,7 @@ def fix_machine_regist():
         btn_type = request.form['btn_type']
 
         machine_data = get_eachmachine_status(machine)
+        message = machine_data[1]['message']
         if check_type == 'check' or check_type == 'setup': #検査 or 段取り
             check_type_ja = "検査" if check_type=="check" else "段取り"
             if btn_type == 'start': #ここで新規ID発行　/fixmachineではIDをローカルのまま流しているだけなので検査開始時点では値なし
@@ -172,7 +172,8 @@ def fix_machine_regist():
                 date_st = ""
                 ope_id = check_machine_id(machine)
                 count=""
-                update_status(machine)
+                message = ""
+                message_flg()
                 flash(f"{machine} の{check_type_ja}を開始しました")
             elif btn_type == 'end':
                 machine_status = "稼働中" if check_type=="check" else "段取り済" #検査終了の場合はそのまま検査へ段取り終了の場合は段取り済に
@@ -187,7 +188,8 @@ def fix_machine_regist():
                     time_st = ""
                     date_st = ""
                     count = ""
-                    update_status(machine)
+                    message = ""
+                    message_flg()
                 ope_id = machine_data[1]['ope_id']
                 comment = request.form['comment']
 
@@ -196,13 +198,15 @@ def fix_machine_regist():
                 handle_ss.add_new_row(new_row_ss, "調整記録")
                 check_st_time = "" #ローカルの更新用に空欄にしておく
                 flash(f"{machine} の{check_type_ja}を終了しました")
-            update_machine_status([ope_id,machine_status,date_st,time_st,count,item,check_st_time,machine_data[1]['comment']], machine)
+            update_machine_status([ope_id,machine_status,date_st,time_st,count,item,check_st_time,message], machine)
         elif check_type == 'fix': #調整
             ope_id = machine_data[1]['ope_id']
             item = machine_data[1]['item']
             if btn_type == 'start': #稼働状況を調整中に変更してローカルの各機械のCSV末尾に調整開始時刻を追記する
                 machine_status = "調整中"
                 check_st_time = dt_now.strftime('%H:%M')
+                message = ""
+                message_flg()
                 flash(f"{machine} の調整を開始しました")
             elif btn_type == 'end': #ここで調整開始時刻をＣＳＶから取得する
                 machine_status = "検査中"
@@ -213,7 +217,7 @@ def fix_machine_regist():
                 handle_ss.add_new_row(new_row_ss, "調整記録")
                 check_st_time = dt_now.strftime('%H:%M') #検査の開始時刻
                 flash(f"{machine} の調整を終了し検査を開始しました")                
-            update_machine_status([ope_id,machine_status,machine_data[1]['date_st'],machine_data[1]['time_st'],machine_data[1]['count_st'],item,check_st_time,machine_data[1]['comment']], machine)
+            update_machine_status([ope_id,machine_status,machine_data[1]['date_st'],machine_data[1]['time_st'],machine_data[1]['count_st'],item,check_st_time,message], machine)
 
         
         return redirect(url_for('autocount_home', press=press))
@@ -225,8 +229,7 @@ def qa():
         True
     elif request.method == 'POST':
         # プレス機ごとのコメント更新
-        # add_comment(request)
-        update_messages(request)
+        add_message(request)
         # アップロードされたCSVの読み取り、更新
         file = request.files['file']
         if file:
@@ -238,10 +241,8 @@ def qa():
     order_map = {key: i for i, key in enumerate(machine_order)}
     machine_datas = sorted(machine_datas, key=lambda item: order_map[item[0]])
 
-    message_dict = get_messages()
-    datas = get_machine_status()
     val_items = get_items()
-    return render_template('management.html', machine_datas=machine_datas, val_items=val_items, message_dict=message_dict)
+    return render_template('management.html', machine_datas=machine_datas, val_items=val_items)
 
 
 
@@ -274,16 +275,15 @@ def qmessages_history():
     return render_template('messages_history.html', rows=rows)
 
 
-@app.route('/getcomment', methods=['GET'])
+@app.route('/getmessage', methods=['GET'])
 def get_comment():
         try:
             rows = get_row_messages()
             late_message = rows[-1]
-            print(late_message)
             if int(late_message[3]) == 0:
                 text_ = "プレス機:"+late_message[1]+", "+late_message[2]
             elif int(late_message[3]) == 1:
-                text_ = "最新メッセージなし"
+                text_ = ""
             return jsonify(text=text_)
         except FileNotFoundError:
             # ファイルが見つからない場合はエラーメッセージを返す
@@ -368,25 +368,31 @@ def add_machine_data(new_machine_name):
     
 
 
-# def add_comment(request): #管理画面からコメントと商品を更新
-#     dt_now = datetime.datetime.now()
-#     dt_now = dt_now.strftime('%Y%m%d%H%M%S')
+def add_message(request): #管理画面からコメントと商品を更新
+    dt_now = datetime.datetime.now()
+    dt_now = dt_now.strftime('%Y/%m/%d %H:%M:%S')
     
-#     for key,value in request.form.items():
-#         if value :
-#             if key == "file":
-#                 pass
-#             else:
-#                 csv_path = resource_path('autocountapp/messages/message_' + key + '.csv')
-#                 with open(csv_path, mode='r', encoding='utf-8') as f:
-#                     val = csv.reader(f)
-#                     for row in val:
-#                         a = row
-#                         a[7] = value
-#                         break
-#                 with open(csv_path, mode='w', encoding='utf-8') as f:
-#                         writer = csv.writer(f)
-#                         writer.writerow(a)
+    for key,value in request.form.items():
+        if value :
+            if key == "file":
+                pass
+            else:
+                csv_path = resource_path('autocountapp/machines/' + key + '.csv')
+                with open(csv_path, mode='r', encoding='utf-8') as f:
+                    val = csv.reader(f)
+                    for row in val:
+                        a = row
+                        if a[7] == value:
+                            break
+                        else:    
+                            a[7] = value
+                            with open(resource_path('autocountapp/messages_history.csv'), mode='a', encoding='utf-8') as f2:
+                                    writer = csv.writer(f2,  lineterminator="\n")
+                                    writer.writerow([dt_now, key, value, 0])
+                                    break
+                with open(csv_path, mode='w', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(a)
     
 
 
@@ -418,7 +424,7 @@ def get_eachmachine_status(machine_name): #機械ごとのCSVを読み込み、 
         with open(csv_path, mode='r', encoding='utf-8') as f:
             val = csv.reader(f)
             for row in val:
-                machine_data = [machine_name,{"ope_id":row[0], "status":row[1], "date_st":row[2], "time_st":row[3], "count_st":row[4], "item":row[5], "fixcheck_st_time":row[6], "comment":row[7]}]
+                machine_data = [machine_name,{"ope_id":row[0], "status":row[1], "date_st":row[2], "time_st":row[3], "count_st":row[4], "item":row[5], "fixcheck_st_time":row[6], "message":row[7]}]
     except: #存在しない時の処理作る
         val = ''
     return machine_data
@@ -536,57 +542,20 @@ def update_item_csv(file):
         flash('許可されていないファイルタイプです。CSVファイルのみアップロードできます。', 'error')
 
 
-def get_messages(): #メッセージのCSVから各機械の最新のメッセージを返す
-    global machine_order
-    message_dict = {}
-    flag_dict = {}
-    for machine in machine_order:
-        message_dict[machine] = ""
-        flag_dict[machine] = ""
-    
-    csv_path = resource_path('autocountapp/messages.csv')
-    with open(csv_path, mode='r', encoding='utf-8') as f:
-        rows = list(csv.reader(f))
-        for row in reversed(rows):
-            if len(row) < 3:
-                continue
-                
-            machine = row[1]
-            message = row[2]
-
-            if machine in message_dict and flag_dict[machine]=="":
-                message_dict[machine] = message
-                flag_dict[machine] = 1
-
-            if all(flag_dict.values()):
-                break
-
-    return message_dict
 
 def get_row_messages():
-    csv_path = resource_path('autocountapp/messages.csv')
-    with open(csv_path, mode='r', encoding='utf-8') as f:
-        rows = list(csv.reader(f))
+    try:
+        csv_path = resource_path('autocountapp/messages_history.csv')
+        with open(csv_path, mode='r', encoding='utf-8') as f:
+            rows = list(csv.reader(f))
+    except Exception as e:
+        rows = []
+        print(f"CSV読み込みエラー: {e}")
 
     return rows
 
-def update_messages(request): #管理画面からコメントと商品を更新
-    dt_now = datetime.datetime.now()
-    dt_now = dt_now.strftime('%Y/%m/%d %H:%M:%S')
-    
-    for key,value in request.form.items():
-        if value :
-            if key == "file": #商品ファイルはパス
-                pass
-            else:
-                csv_path = resource_path('autocountapp/messages.csv')
-                with open(csv_path, mode='a', encoding='utf-8') as f:
-                        writer = csv.writer(f,  lineterminator="\n")
-                        writer.writerow([dt_now, key, value, 0])
-
-
-def update_status(target_machine):
-    csv_path = resource_path('autocountapp/messages.csv')
+def message_flg():
+    csv_path = resource_path('autocountapp/messages_history.csv')
     all_rows = []
     with open(csv_path, mode='r', encoding='utf-8') as f:
         reader = csv.reader(f)
@@ -594,12 +563,11 @@ def update_status(target_machine):
         for i, row in reversed(list(enumerate(all_rows))):
             machine = row[1]
             status = row[3]
-            if machine == target_machine:
-                if status == "0":
-                    all_rows[i][3] = '1' 
-                    break
-                elif status == "1":
-                    break
+            if status == "0":
+                all_rows[i][3] = 1
+                break
+            elif status == "1":
+                break
     with open(csv_path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(all_rows) # 更新されたデータ行を全て書き込む
