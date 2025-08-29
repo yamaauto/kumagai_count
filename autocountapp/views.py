@@ -465,9 +465,13 @@ def update_machine_status(new_row, machine_name):
 
 #for exe path
 def resource_path(relative_path):
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
+    # if hasattr(sys, '_MEIPASS'):
+    #     base_path = sys._MEIPASS
+    # else:
+    #     base_path = os.path.abspath(".")
+    if getattr(sys, 'frozen', False):  # exe 化されているとき
+        base_path = os.path.dirname(sys.executable)
+    else:  # Python スクリプト実行時
         base_path = os.path.abspath(".")
 
     return os.path.join(base_path, relative_path)
