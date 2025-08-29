@@ -103,6 +103,7 @@ def fix_machine():
         machine = request.form['machine']
         check_type = request.form['check_type']
         machine_data = get_eachmachine_status(machine)
+        message = machine_data[1]['message']
         if check_type == 'setup': #検査の場合、選択された商品・新規ID・を返す　ローカルで更新するのはＩＤと稼働状況のみ
             try:
                 if request.form['return_btn']=="home": #戻る処理
@@ -145,7 +146,7 @@ def fix_machine():
                 item = machine_data[1]['item']
                 btn_type = 'end'
         item_data = search_items(item)
-        return render_template('fixmachine.html', machine=machine, item=item, item_data=item_data, check_type=check_type, btn_type=btn_type, press=press)
+        return render_template('fixmachine.html', machine=machine, item=item, item_data=item_data, check_type=check_type, btn_type=btn_type, press=press, message=message)
 
 
 
