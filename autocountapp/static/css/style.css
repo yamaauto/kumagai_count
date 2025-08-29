@@ -547,3 +547,15 @@ h1 {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* style.css ファイルに以下のCSSを追加 */
+.qa-submit .section:last-child {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 0; /* 適度な余白を追加 */
+  background-color: white; /* 下に隠れるコンテンツを見せるために背景色を設定 */
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* 影を追加して視覚的に区別する */
+  text-align: center; /* ボタンを中央に配置する場合 */
+}

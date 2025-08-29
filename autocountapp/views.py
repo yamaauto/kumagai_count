@@ -271,9 +271,9 @@ def setting_machine():
 
 
 @app.route('/messages_history', methods=['GET', 'POST'])
-def qmessages_history():
+def messages_history():
     if request.method == 'GET':
-        rows = get_row_messages()
+        rows = reversed(get_row_messages())
     return render_template('messages_history.html', rows=rows)
 
 
@@ -282,7 +282,7 @@ def get_comment():
         try:
             rows = get_row_messages()
             late_message = rows[-1]
-            if int(late_message[3]) == 0:
+            if int(late_message[3]) == 0 and late_message[2] != "":
                 text_ = "プレス機:"+late_message[1]+", "+late_message[2]
             elif int(late_message[3]) == 1:
                 text_ = ""
@@ -375,7 +375,7 @@ def add_message(request): #管理画面からコメントと商品を更新
     dt_now = dt_now.strftime('%Y/%m/%d %H:%M:%S')
     
     for key,value in request.form.items():
-        if value :
+        # if value :
             if key == "file":
                 pass
             else:

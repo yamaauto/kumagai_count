@@ -22,12 +22,12 @@
     <div class="inner management-inner">
       <ul class="management">
         <li class="section">
-            <!-- <div class="search-box">
+            <div class="search-box">
               <label for="search" class="search-label">🔍 キーワード検索</label>
               <input type="text" class="search-input" name="search" id="search-messages" placeholder="キーワード入力">
-            </div> -->
-            <div class="table_box">
-              <table class="c-commonTable select-table" data-group="item">
+            </div>
+            <div class="">
+              <table class="c-commonTable select-table">
                 <thead>
                   <tr>
                     <th scope="col" class="sticky" style="width: 100px;">更新日時</th>
@@ -54,4 +54,25 @@
 
 </body>
 
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script>
+  document.getElementById("search-messages").addEventListener("input", function endoperation() {
+    const keyword = this.value.toLowerCase();
+    const rows = document.querySelectorAll("#messages-table-body tr");
+        console.log(rows)
+
+
+    rows.forEach((row) => {
+      const machineText = row.querySelector(".machine").textContent.toLowerCase();
+      const messageText = row.querySelector(".message").textContent.toLowerCase();
+      if (messageText.includes(keyword)) {
+        row.style.display = "";
+      }else if (machineText.includes(keyword)) {
+        row.style.display = "";
+      } else {
+        row.style.display = "none";
+      }
+    });
+  });
+
+</script>
