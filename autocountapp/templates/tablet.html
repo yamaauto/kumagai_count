@@ -103,7 +103,7 @@
               <tbody id="item-table-body">
               {% for i in items %}
                 <tr class="select-tr item-tr" onclick="selectRow(this, 'item')" >
-                  <td hidden><input type="radio" class="items" name="item" value={{ i[3] }} checked disabled></td>
+                  <td hidden><input type="radio" class="items" name="item" value="{{ i[3] }}" checked disabled></td>
                   <td class="customer-name">{{ i[1] }}</td>
                   <td class="rot-no">{{ i[2] }}</td>
                   <td class="sku-no">{{ i[3] }}</td>
