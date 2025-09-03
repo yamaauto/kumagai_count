@@ -9,6 +9,7 @@ import sys
 import datetime
 import csv
 import io
+import openpyxl
 import time
 
 
@@ -16,7 +17,7 @@ UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'csv'} # 許可するファイル拡張子
+ALLOWED_EXTENSIONS = {'xlsx'} # 許可するファイル拡張子
 
 # スケジューラー設定クラス
 class Config:
@@ -236,7 +237,7 @@ def qa():
         # アップロードされたCSVの読み取り、更新
         file = request.files['file']
         if file:
-            update_item_csv(file)
+            update_item_xlsx(file)
         else:
             flash('メッセージを更新しました')
     global machine_order
@@ -517,36 +518,64 @@ def check_machine_id(machine):
         ope_id = dt_now.strftime('%Y%m%d') + str(ope_id_num).zfill(3)
         return ope_id   
     
-def update_item_csv(file):
+def update_item_xlsx(file):
     if file and allowed_file(file.filename):
-        # ファイル名を安全に取得 (出力ファイル名に利用するため)
-        filename = secure_filename(file.filename)
         try:
-            # アップロードされたファイルのバイトストリームをUTF-8でデコードしてテキストストリームとして扱う
-            # これにより、ファイルをディスクに保存せずに直接読み込めます
-            csv_text_stream = io.TextIOWrapper(file.stream, encoding='utf-8')
+            filename = secure_filename(file.filename)
             
-            with csv_text_stream as infile: # 直接テキストストリームとして読み込む
-                reader = csv.reader(infile)
-                items_data = []
-                csv_path = resource_path('autocountapp/items.csv')
-                with open(csv_path, 'w', newline='', encoding='utf-8') as outfile: # 新しいCSVに書き込む
-                    writer = csv.writer(outfile)
-                    for row in reader:
-                        writer.writerow(row) # 読み取った行をそのまま書き込む
-                        items_data.append(row)
-                handle_ss.update_item_ss(items_data) # スプレッドシートの商品を更新する
+            # アップロードされたファイルのバイトストリームを直接読み込む
+            # これにより、ファイルをディスクに保存せずに直接openpyxlで扱えます
+            # openpyxlはファイルオブジェクトを直接扱えます
+            wb = openpyxl.load_workbook(file.stream, data_only=True)
             
-            flash(f'ファイル "{filename}" をアップロードし、商品を更新しました。', 'success') # success カテゴリを追加
-        except Exception as e:
-            flash(f'CSV処理中にエラーが発生しました: {e}', 'error') # error カテゴリを追加
-            print(f"CSV処理エラー: {e}") # 簡単なデバッグ用
-        finally:
-            # 入力ファイルをディスクに保存していないため、ここでは何も削除する必要はありません
-            pass
+            datas = []
+            
+            for sheet in wb.sheetnames:
+                ws = wb[sheet]
+                print(f'--- {sheet} ---')
                 
+                customer_no = None
+                customer_name = None
+
+                for i, row in enumerate(ws.iter_rows(values_only=True, min_row=2)):
+                    if i == 0:
+                        customer_no = row[0]
+                        customer_name = row[1]
+                    elif i == 1:
+                        continue # ヘッダー行をスキップ
+                    else:
+                        if row[0] is None:
+                            break
+                        datas.append([
+                            customer_no, 
+                            customer_name, 
+                            row[0], 
+                            row[1], 
+                            row[2], 
+                            row[3], 
+                            row[4], 
+                            row[5], 
+                            row[6], 
+                            row[7]
+                        ])
+            
+            # CSVファイルへの書き込み
+            csv_path = resource_path('autocountapp/items.csv')
+            with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerows(datas) # writerowをループする代わりにwriterowsを使う
+            
+            # スプレッドシートの更新
+            handle_ss.update_item_ss(datas)
+            
+            flash(f'ファイル "{filename}" をアップロードし、商品を更新しました。', 'success')
+            
+        except Exception as e:
+            flash(f'ファイル処理中にエラーが発生しました: {e}', 'error')
+            print(f"ファイル処理エラー: {e}")
+            
     else:
-        flash('許可されていないファイルタイプです。CSVファイルのみアップロードできます。', 'error')
+        flash('許可されていないファイルタイプです。XLSXファイルのみアップロードできます。', 'error')
 
 
 

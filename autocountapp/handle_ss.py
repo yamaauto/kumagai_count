@@ -33,7 +33,7 @@ def add_new_row(data, sheet): #1行追加
         print("新しいデータが追加されました。")
 
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 
 def update_row(data, sheet, row): #1行追加
@@ -47,7 +47,7 @@ def update_row(data, sheet, row): #1行追加
         print("更新しました")
 
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 
 
@@ -63,7 +63,7 @@ def get_all_row(sheet): #全件取得
         return data
     
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 def get_a_col(sheet, col_num): #全件取得
     credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scope)
@@ -77,7 +77,7 @@ def get_a_col(sheet, col_num): #全件取得
         return data
     
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 
 def update_count_ed(sheet, row, count, time_ed, flg_nxtday): #終了時カウントと終了時刻のみをアップデートする
@@ -93,7 +93,7 @@ def update_count_ed(sheet, row, count, time_ed, flg_nxtday): #終了時カウン
 
     
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 
 def update_item_ss(items_data):
@@ -104,11 +104,10 @@ def update_item_ss(items_data):
         sheet = 'items'
         worksheet = gc.open_by_key(item_spreadsheet_key).worksheet(sheet)
         worksheet.clear()
-        for row in items_data:
-            worksheet.append_row(row)
+        worksheet.append_rows(items_data)
 
     except Exception as e:
-        print("エラーが発生しました:", e)
+        print("スプレッドシートへのアップロードでエラーが発生しました:", e)
 
 
 # if __name__ == "__main__":
