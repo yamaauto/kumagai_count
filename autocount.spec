@@ -12,10 +12,6 @@ a = Analysis(
         ('autocountapp/static/css/*.css', 'autocountapp/static/css'),  # CSS
         ('autocountapp/static/js/*.js', 'autocountapp/static/js'),     # JS
         ('autocountapp/static/img/*.*', 'autocountapp/static/img'),    # 画像
-        ('autocountapp/machines/*.csv', 'autocountapp/machines'),      # CSVファイル
-        ('autocountapp/items.csv', 'autocountapp'),                    # ルートのCSV
-        ('autocountapp/messages_history.csv', 'autocountapp'),                    # ルートのCSV
-        ('autocountapp/id_regist.csv', 'autocountapp'),
         ('kumagaiseiki-823b66fbc076.json', '.'),
     ],
     hiddenimports=[],
