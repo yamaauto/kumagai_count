@@ -56,6 +56,8 @@ setInterval(fetchLatestData, 30000);
 
 // 稼働状況管理表の稼働状況の色分け
 document.addEventListener("DOMContentLoaded", function () {
+  const allnxtdayBtn = document.getElementById('allnxtday');
+  allnxtdayBtn.disabled = false;
   statusList.forEach(([machine_name, status]) => {
     console.log(status)
     if (status === "稼働中") {
@@ -64,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         el.classList.add("red");
       }
     }
-    else if (status === "停止中" || status === "一時停止中"){
+    else if (status === "停止中" || status === "稼働一時停止中"){
       const el = document.getElementsByClassName(machine_name)[0];
       if (el) {
         console.log(el)
@@ -106,7 +108,7 @@ function selectRow(row, groupName) {
           const startBtn = document.getElementById('start');
           const endBtn = document.getElementById('end');
           const nxtdayBtn = document.getElementById('nxtday');
-          const enddayBtn = document.getElementById('endday');
+          
 
           const selectedId = radio.id;
           const stat = statusList.find(item => item[0] === selectedId);
@@ -135,7 +137,7 @@ function selectRow(row, groupName) {
           } else if (stat && stat[1] === "停止中") {
             setupBtn.disabled = false;
             fixBtn.disabled = true;
-            checkBtn.disabled = false;
+            checkBtn.disabled = true;
             startBtn.disabled = true;
             endBtn.disabled = true;
             nxtdayBtn.disabled = true;
@@ -155,7 +157,7 @@ function selectRow(row, groupName) {
             checkBtn.disabled = true;
             startBtn.disabled = true;
             endBtn.disabled = true;
-            nxtdayBtn.disabled = true;
+            nxtdayBtn.disabled = false;
             // enddayBtn.disabled = true;
             itemradio.forEach(radio => {
               radio.disabled = true;
@@ -172,7 +174,7 @@ function selectRow(row, groupName) {
             checkBtn.disabled = false;
             startBtn.disabled = true;
             endBtn.disabled = true;
-            nxtdayBtn.disabled = true;
+            nxtdayBtn.disabled = false;
             // enddayBtn.disabled = true;
             itemradio.forEach(radio => {
               radio.disabled = true;
@@ -206,7 +208,7 @@ function selectRow(row, groupName) {
             checkBtn.disabled = true;
             startBtn.disabled = true;
             endBtn.disabled = true;
-            nxtdayBtn.disabled = true;
+            nxtdayBtn.disabled = false;
             // enddayBtn.disabled = true;
             itemradio.forEach(radio => {
               radio.disabled = true;
@@ -217,11 +219,62 @@ function selectRow(row, groupName) {
             searchbox.forEach((row) => {
               row.style.display = "none";
             })
-          } else if (stat && stat[1] === "一時停止中") {
+          } else if (stat && stat[1] === "稼働一時停止中") {
             setupBtn.disabled = true;
             fixBtn.disabled = true;
             checkBtn.disabled = true;
             startBtn.disabled = false;
+            endBtn.disabled = true;
+            nxtdayBtn.disabled = true;
+            // enddayBtn.disabled = false;
+            itemradio.forEach(radio => {
+              radio.disabled = true;
+            });
+            rows.forEach((row) => {
+              row.style.display = "none";
+            })
+            searchbox.forEach((row) => {
+              row.style.display = "none";
+            })
+          } else if (stat && stat[1] === "段取り一時停止中") {
+            setupBtn.disabled = false;
+            fixBtn.disabled = true;
+            checkBtn.disabled = true;
+            startBtn.disabled = true;
+            endBtn.disabled = true;
+            nxtdayBtn.disabled = true;
+            // enddayBtn.disabled = false;
+            itemradio.forEach(radio => {
+              radio.disabled = true;
+            });
+            rows.forEach((row) => {
+              row.style.display = "none";
+            })
+            searchbox.forEach((row) => {
+              row.style.display = "none";
+            })
+          } else if (stat && stat[1] === "検査一時停止中") {
+            setupBtn.disabled = true;
+            fixBtn.disabled = true;
+            checkBtn.disabled = false;
+            startBtn.disabled = true;
+            endBtn.disabled = true;
+            nxtdayBtn.disabled = true;
+            // enddayBtn.disabled = false;
+            itemradio.forEach(radio => {
+              radio.disabled = true;
+            });
+            rows.forEach((row) => {
+              row.style.display = "none";
+            })
+            searchbox.forEach((row) => {
+              row.style.display = "none";
+            })
+          } else if (stat && stat[1] === "調整一時停止中") {
+            setupBtn.disabled = true;
+            fixBtn.disabled = false;
+            checkBtn.disabled = true;
+            startBtn.disabled = true;
             endBtn.disabled = true;
             nxtdayBtn.disabled = true;
             // enddayBtn.disabled = false;
@@ -294,10 +347,11 @@ document.getElementById("search").addEventListener("input", function endoperatio
     }
   })
   document.getElementById('nxtday').addEventListener("click", function () {
-    var result = window.confirm('本日の生産を終了しても宜しいですか？翌日生産開始ボタンを押すことで再開されます');
+    var result = window.confirm('本日の生産を終了しても宜しいですか？翌日開始ボタンを押すことで再開されます');
     console.log(result);
     if (!result) { // resultがfalse（キャンセルボタンが押された）の場合
       event.preventDefault(); // ボタンのデフォルト動作（フォーム送信）を中止
+      location.reload();
     } else {
 
     }

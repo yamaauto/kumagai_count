@@ -8,7 +8,7 @@ scope = [
     'https://www.googleapis.com/auth/drive'
 ]
 
-# spreadsheet_key = '1zMKp9oeqYWK2D8fw_4IrwVvuzQjmVV6GYPzIGo32HTs' #テスト用
+# spreadsheet_key = '1Q7MMcfARDBEBwAmpH-F6wGZUCGJq9F_YMveiCijrFnQ' #テスト用
 # item_spreadsheet_key = '1Hr1HBB6c_mugMQbs0pbDGk6JMVaQonB-GYQEiQGCRm8' #テスト用
 spreadsheet_key = '1PNlx_ka3FXjSoifi1iO6SkHq5N45gkZUCg-xqcaardg'
 item_spreadsheet_key = '1z79vsacTi9QMzC0f4GzXruJFVMOEK80AfXmp6dt4ixw'
