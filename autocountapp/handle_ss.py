@@ -30,7 +30,7 @@ def add_new_row(data, sheet): #1行追加
         global spreadsheet_key
         worksheet = gc.open_by_key(spreadsheet_key).worksheet(sheet)
         worksheet.append_row(data)
-        print("新しいデータが追加されました。")
+        print("新しいデータが追加されました。",data)
 
     except Exception as e:
         print("スプレッドシートへのアップロードでエラーが発生しました:", e)

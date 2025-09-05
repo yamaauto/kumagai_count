@@ -65,11 +65,16 @@ machine_order = ['A-500', 'P-300', 'S-250', 'R-150', 'K-150', 'J-300', 'E-150', 
 #生産画面
 @app.route('/', methods=['GET', 'POST'])
 def autocount_home():
+    dt_now = datetime.datetime.now()
     if request.method == 'GET':
         press = request.args.get('press')
     elif request.method == 'POST':
-        press = request.form['press']
-        a = regist_status(request)
+        # press = request.form['press']
+        press = ""
+        ope_val_ = {'date':dt_now.strftime('%Y/%m/%d')}
+        for key, value in request.form.items():
+            ope_val_[key] = value
+        a = regist_status(ope_val_)
         flash('登録に成功しました!')
         return redirect(url_for('autocount_home', press=press))
 
@@ -299,94 +304,96 @@ def get_comment():
 
 ##################################################
 
-def regist_status(request):
+def regist_status(ope_val):
     dt_now = datetime.datetime.now()
     date_today = dt_now.date()
+    global machine_order
+    if ope_val['operation'] == 'allnxtday':
+        ope_val['machine'] = machine_order
+    else:
+        ope_val['machine'] = [ope_val['machine']]
 
-
-    ope_val = {'date':dt_now.strftime('%Y/%m/%d')}
-    for key, value in request.form.items():
-        ope_val[key] = value
     datas = get_machine_status()
-    for i in range(len(datas)): #稼働状態シートから、どのプレス機か判定, iをその後使いまわす
-        if ope_val['machine'] in datas[i]:
-            break
-    machine = ope_val['machine']
-    status = datas[i][1]['status']
-    message = datas[i][1]['comment']
-    ope_id = datas[i][1]['ope_id'] 
-    item = datas[i][1]['item']
-    check_st_time = datas[i][1]["fixcheck_st_time"]
-    if ope_val['operation'] == 'start': #生産開始
-        ope_id = check_machine_id(machine) #startの処理は一時停止している日を跨いだ加工の再開のみなので
-        item = get_eachmachine_status(machine)[1]['item']
-        # count = 1000
-        count = handle_plc.get_count(machine)
-        new_row = [ope_id, "稼働中", dt_now.strftime('%Y/%m/%d'), dt_now.strftime('%H:%M'), count, item, ""]
-        update_machine_status(new_row, machine)
-    elif ope_val['operation'] == 'end' or ope_val['operation'] == 'nxtday': #生産終了
-        if datas[i][1]["date_st"]:
+    for machine in ope_val['machine']:
+        for i in range(len(datas)): #稼働状態シートから、どのプレス機か判定, iをその後使いまわす
+            if machine in datas[i]:
+                break
+        # machine = ope_val['machine']
+        status = datas[i][1]['status']
+        message = datas[i][1]['comment']
+        ope_id = datas[i][1]['ope_id'] 
+        item = datas[i][1]['item']
+        check_st_time = datas[i][1]["fixcheck_st_time"]
+        if ope_val['operation'] == 'start': #生産開始
+            ope_id = check_machine_id(machine) #startの処理は一時停止している日を跨いだ加工の再開のみなので
+            item = get_eachmachine_status(machine)[1]['item']
+            # count = 1000
             count = handle_plc.get_count(machine)
-            date_st = datetime.datetime.strptime(datas[i][1]["date_st"], "%Y/%m/%d").date()
-            if date_today > date_st: #稼働開始が前日以前だった場合の処理 不要かも
-                delta_days = (date_today - date_st).days
-                time_ed = str(int(dt_now.strftime('%H'))+int(delta_days)*24) + ":" + str(dt_now.strftime('%M'))
-            else:
-                time_ed = dt_now.strftime('%H:%M')
-            time_st = datas[i][1]["time_st"]
-            count_st = int(datas[i][1]["count_st"])
-            count_ed = count
+            new_row = [ope_id, "稼働中", dt_now.strftime('%Y/%m/%d'), dt_now.strftime('%H:%M'), count, item, ""]
+            update_machine_status(new_row, machine)
+        elif ope_val['operation'] == 'end' or ope_val['operation'] == 'nxtday' or ope_val['operation'] == 'allnxtday': #生産終了
+            if datas[i][1]["date_st"]:
+                count = handle_plc.get_count(machine)
+                date_st = datetime.datetime.strptime(datas[i][1]["date_st"], "%Y/%m/%d").date()
+                if date_today > date_st: #稼働開始が前日以前だった場合の処理 不要かも
+                    delta_days = (date_today - date_st).days
+                    time_ed = str(int(dt_now.strftime('%H'))+int(delta_days)*24) + ":" + str(dt_now.strftime('%M'))
+                else:
+                    time_ed = dt_now.strftime('%H:%M')
+                time_st = datas[i][1]["time_st"]
+                count_st = int(datas[i][1]["count_st"])
+                count_ed = count
 
-            if status == "稼働中":
-                if ope_val['operation'] == 'end':
-                    new_row = ["", "停止中", "", "", "", "", ""]
-                    flg_nxtday = 0
-                elif ope_val['operation'] == 'nxtday':
-                    new_row = [ope_id, "稼働一時停止中", "", "", "", item, ""]
-                    flg_nxtday = 1
-                # スプレッドシート更新
-                # log_id = handle_ss.get_a_col("プレスログ", 1)
-                # datas = handle_ss.get_all_row("プレスログ")
+                if status == "稼働中":
+                    if ope_val['operation'] == 'end':
+                        new_row = ["", "停止中", "", "", "", "", ""]
+                        flg_nxtday = 0
+                    elif ope_val['operation'] == 'nxtday' or ope_val['operation'] == 'allnxtday':
+                        new_row = [ope_id, "稼働一時停止中", "", "", "", item, ""]
+                        flg_nxtday = 1
+                    # スプレッドシート更新
+                    # log_id = handle_ss.get_a_col("プレスログ", 1)
+                    # datas = handle_ss.get_all_row("プレスログ")
 
-                # ローカル更新
-                # new_row = ["", "停止中", "", "", "", ""]
-                update_machine_status(new_row, machine)
+                    # ローカル更新
+                    # new_row = ["", "停止中", "", "", "", ""]
+                    update_machine_status(new_row, machine)
 
-            #稼働開始日がある場合の調整・検査は、日跨ぎ処理をする場合に生産停止処理も同時に行う必要がある
-            if status == "調整中" or status == "検査中":
-                if status == "調整中":
-                    machine_status = "調整一時停止中"
-                    check_type_ja = "調整"
-                    flg_nxtday = 1
+                #稼働開始日がある場合の調整・検査は、日跨ぎ処理をする場合に生産停止処理も同時に行う必要がある
+                if status == "調整中" or status == "検査中":
+                    if status == "調整中":
+                        machine_status = "調整一時停止中"
+                        check_type_ja = "調整"
+                        flg_nxtday = 1
+                    elif status == "検査中":
+                        machine_status = "検査一時停止中"
+                        check_type_ja = "検査"
+                        flg_nxtday = 1
+                    update_machine_status([ope_id,machine_status,"","","",item,"",message], machine)
+                    check_date = dt_now.strftime('%Y/%m/%d')
+                    new_row_ss = [ope_id, check_date, machine, item, check_st_time, dt_now.strftime('%H:%M'), '', check_type_ja, "日跨ぎ一時停止"]
+                    handle_ss.add_new_row(new_row_ss, "調整記録")
+                
+                new_row_ss = [ope_id, date_today.strftime('%Y/%m/%d'), machine, item, time_st, time_ed, count_st, 0, count_ed, "", "", flg_nxtday]
+                handle_ss.add_new_row(new_row_ss, "プレスログ")
+
+            elif status == "段取り中" or status == "検査中": #ここから調整項目の日跨ぎ処理
+                if status == "段取り中":
+                    machine_status = "段取り一時停止中"
+                    check_type_ja = "段取り"
                 elif status == "検査中":
                     machine_status = "検査一時停止中"
                     check_type_ja = "検査"
-                    flg_nxtday = 1
+                # elif status == "調整中":
+                #     machine_status = "調整一時停止中"
+                #     check_type_ja = "調整"
                 update_machine_status([ope_id,machine_status,"","","",item,"",message], machine)
                 check_date = dt_now.strftime('%Y/%m/%d')
                 new_row_ss = [ope_id, check_date, machine, item, check_st_time, dt_now.strftime('%H:%M'), '', check_type_ja, "日跨ぎ一時停止"]
                 handle_ss.add_new_row(new_row_ss, "調整記録")
-
-            new_row_ss = [ope_id, date_today.strftime('%Y/%m/%d'), machine, item, time_st, time_ed, count_st, 0, count_ed, "", "", flg_nxtday]
-            handle_ss.add_new_row(new_row_ss, "プレスログ")
-
-        else: #ここから調整項目の日跨ぎ処理
-            if status == "段取り中":
-                machine_status = "段取り一時停止中"
-                check_type_ja = "段取り"
-            elif status == "検査中":
-                machine_status = "検査一時停止中"
-                check_type_ja = "検査"
-            # elif status == "調整中":
-            #     machine_status = "調整一時停止中"
-            #     check_type_ja = "調整"
-            update_machine_status([ope_id,machine_status,"","","",item,"",message], machine)
-            check_date = dt_now.strftime('%Y/%m/%d')
-            new_row_ss = [ope_id, check_date, machine, item, check_st_time, dt_now.strftime('%H:%M'), '', check_type_ja, "日跨ぎ一時停止"]
-            handle_ss.add_new_row(new_row_ss, "調整記録")
-        # else:
-        #     return False
-    # elif ope_val['operation'] == 'endday': #本日生産終了
+            # else:
+            #     return False
+        # elif ope_val['operation'] == 'endday': #本日生産終了
         
     
 
